@@ -1,0 +1,29 @@
+{
+  "name": "codemaya-rag",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node --enable-source-maps dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "seed": "tsx src/scripts/seed.ts"
+  },
+  "dependencies": {
+    "@langchain/community": "^1.1.27",
+    "@langchain/core": "^1.1.39",
+    "chromadb": "^3.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "@huggingface/inference": "^4.7.1",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
