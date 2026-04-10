@@ -1,0 +1,34 @@
+services:
+  chroma:
+    image: chromadb/chroma:0.5.5
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "curl -fsS http://localhost:8000/api/v1/heartbeat >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    ports:
+      - "8501:8501"
+    depends_on:
+      chroma:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - CHROMA_URL=http://chroma:8000
+      - CHROMA_TENANT=default_tenant
+      - CHROMA_DATABASE=default_database
+
+volumes:
+  chroma_data:
+

@@ -1,0 +1,11 @@
+.git
+node_modules
+dist
+venv
+.venv
+__pycache__
+.env
+.streamlit
+.DS_Store
+Thumbs.db
+
