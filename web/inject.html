@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codemaya RAG - Inject Docs</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">Codemaya RAG</div>
+        <div class="nav">
+          <a class="pill" href="/chat.html">Chat</a>
+          <a class="pill active" href="/inject.html">Inject Docs</a>
+          <button class="pill danger" id="logoutBtn" type="button">Logout</button>
+          <span class="pill" id="authState">Logged out</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="card">
+          <h2>Inject Markdown</h2>
+          <div class="muted">Upload `.md` files. Duplicates are skipped automatically.</div>
+
+          <form id="injectForm" style="margin-top:12px">
+            <label>Files</label>
+            <input id="files" type="file" accept=".md,text/markdown" multiple />
+            <div style="margin-top:10px">
+              <button id="injectBtn" class="primary" type="submit">Inject</button>
+            </div>
+          </form>
+          <div id="injectFlash" class="flash"></div>
+        </div>
+
+        <div class="card">
+          <h2>Auth</h2>
+          <div class="muted">You must be logged in to inject documents.</div>
+
+          <form id="loginForm" style="margin-top:10px">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" required />
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" required />
+            <div style="margin-top:10px" class="row">
+              <button class="primary" type="submit">Login</button>
+              <button class="danger" id="logoutBtn" type="button">Logout</button>
+            </div>
+          </form>
+
+          <hr style="border:0;border-top:1px solid var(--border);margin:12px 0" />
+
+          <form id="signupForm">
+            <h3 style="margin-top:0">Sign up</h3>
+            <label>Email</label>
+            <input id="signupEmail" type="email" placeholder="you@example.com" required />
+            <label>Password (min 8 chars)</label>
+            <input id="signupPassword" type="password" placeholder="••••••••" required />
+            <div style="margin-top:10px">
+              <button class="primary" type="submit">Create account</button>
+            </div>
+          </form>
+
+          <div id="authFlash" class="flash"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      if (!localStorage.getItem("token")) location.href = "/login.html";
+    </script>
+    <script src="/app.js"></script>
+  </body>
+</html>

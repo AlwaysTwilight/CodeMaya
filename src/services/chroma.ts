@@ -1,4 +1,4 @@
-import { AdminClient, ChromaClient } from "chromadb";
+import { ChromaClient } from "chromadb";
 import { env } from "../config/env.js";
 import { getEmbeddings } from "./embeddings.js";
 
@@ -20,24 +20,11 @@ function parseChromaUrl(urlStr: string) {
 export async function getChromaCollection() {
   const { host, port, ssl } = parseChromaUrl(env.CHROMA_URL);
 
-  // Ensure we never use the server defaults. Create/get a tenant+database
-  // dedicated for this project.
-  const admin = new AdminClient({ host, port, ssl });
-  try {
-    await admin.getTenant({ name: env.CHROMA_TENANT });
-  } catch {
-    await admin.createTenant({ name: env.CHROMA_TENANT });
-  }
-  try {
-    await admin.getDatabase({ tenant: env.CHROMA_TENANT, name: env.CHROMA_DATABASE });
-  } catch {
-    await admin.createDatabase({ tenant: env.CHROMA_TENANT, name: env.CHROMA_DATABASE });
-  }
-
   const client = new ChromaClient({
     host,
     port,
     ssl,
+    // For Chroma 0.5.x, use defaults (or configure your server accordingly).
     tenant: env.CHROMA_TENANT,
     database: env.CHROMA_DATABASE
   });

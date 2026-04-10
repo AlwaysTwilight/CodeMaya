@@ -1,34 +1,52 @@
 services:
   chroma:
-    image: chromadb/chroma:0.5.5
+    image: chromadb/chroma:latest
     ports:
       - "8000:8000"
     volumes:
-      - chroma_data:/chroma/chroma
+      - chroma_data:/data
     environment:
       - IS_PERSISTENT=TRUE
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
     healthcheck:
-      test: ["CMD", "sh", "-lc", "curl -fsS http://localhost:8000/api/v1/heartbeat >/dev/null"]
+      test: ["CMD", "mongosh", "--quiet", "mongodb://localhost:27017/admin", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
       interval: 5s
       timeout: 3s
       retries: 20
 
-  streamlit:
+  web:
     build:
       context: .
-      dockerfile: app/Dockerfile
     ports:
-      - "8501:8501"
+      - "3000:3000"
     depends_on:
-      chroma:
-        condition: service_healthy
+      - chroma
+      - mongo
+      - redis
     env_file:
       - .env
     environment:
       - CHROMA_URL=http://chroma:8000
-      - CHROMA_TENANT=default_tenant
-      - CHROMA_DATABASE=default_database
+      - MONGODB_URI=mongodb://mongo:27017/codemaya
+      - REDIS_URL=redis://redis:6379
+      - DOCS_DIR=./data/docs
 
 volumes:
   chroma_data:
-
+  mongo_data:

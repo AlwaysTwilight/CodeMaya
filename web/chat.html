@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codemaya RAG - Chat</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">Codemaya RAG</div>
+        <div class="nav">
+          <a class="pill active" href="/chat.html">Chat</a>
+          <a class="pill" href="/inject.html">Inject Docs</a>
+          <button class="pill danger" id="logoutBtn" type="button">Logout</button>
+          <span class="pill" id="authState">Logged out</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="grid">
+        <div class="card">
+          <h3>History</h3>
+          <div class="muted">Last 10 Q&A for your account.</div>
+          <div style="margin-top:10px">
+            <button id="historyBtn" type="button">Load history</button>
+          </div>
+          <div id="history" style="margin-top:10px"></div>
+          <div id="chatFlash" class="flash"></div>
+        </div>
+
+        <div class="card chat">
+          <h2 style="margin:0 0 8px 0">Chat</h2>
+          <div class="muted">Answers are grounded to retrieved chunks from Chroma.</div>
+          <div id="messages" class="messages" style="margin-top:10px">
+            <div class="msg assistant">Ask a question about the seeded docs (from `data/docs`) or docs you inject.</div>
+          </div>
+          <form id="chatForm" class="composer">
+            <textarea id="chatInput" placeholder="Ask about your documents..."></textarea>
+            <button id="sendBtn" class="primary" type="submit" style="flex:0 0 120px">Send</button>
+          </form>
+          <div class="kpi" id="kpi"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      if (!localStorage.getItem("token")) location.href = "/login.html";
+    </script>
+    <script src="/app.js"></script>
+  </body>
+</html>
+

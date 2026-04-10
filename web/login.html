@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codemaya RAG - Login</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">Codemaya RAG</div>
+        <div class="nav">
+          <span class="pill" id="authState">Logged out</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="card">
+          <h2>Login</h2>
+          <div class="muted">Sign in to access chat and document injection.</div>
+          <form id="loginForm" style="margin-top:12px">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" required />
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" required />
+            <div style="margin-top:10px">
+              <button class="primary" type="submit">Login</button>
+            </div>
+          </form>
+          <div id="authFlash" class="flash"></div>
+        </div>
+
+        <div class="card">
+          <h2>Sign up</h2>
+          <div class="muted">Create an account (password min 8 chars).</div>
+          <form id="signupForm" style="margin-top:12px">
+            <label>Email</label>
+            <input id="signupEmail" type="email" placeholder="you@example.com" required />
+            <label>Password</label>
+            <input id="signupPassword" type="password" placeholder="••••••••" required />
+            <div style="margin-top:10px">
+              <button class="primary" type="submit">Create account</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // If already logged in, go straight to chat.
+      if (localStorage.getItem("token")) location.href = "/chat.html";
+    </script>
+    <script src="/app.js"></script>
+  </body>
+</html>
+

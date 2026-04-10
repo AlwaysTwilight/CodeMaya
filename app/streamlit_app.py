@@ -9,11 +9,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from app.auth import get_user_from_token, login_user, register_user  # noqa: E402
 from app.chroma_client import get_chroma_collection  # noqa: E402
+from app.db import ensure_indexes, get_db, now_utc  # noqa: E402
 from app.ingest import semantic_chunk, upsert_chunks  # noqa: E402
 from app.rag import grounded_answer, retrieve  # noqa: E402
+from app.rate_limit import check_and_consume  # noqa: E402
 
 load_dotenv()
+ensure_indexes()
 
 st.set_page_config(page_title="Codemaya RAG", layout="wide")
 st.title("Codemaya RAG - Inject Markdown + Chat (Grounded)")
@@ -51,6 +55,46 @@ with st.sidebar:
     st.header("LLM")
     st.text_input("GROQ_MODEL", value=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"), disabled=True)
 
+st.session_state.setdefault("token", os.getenv("JWT_TOKEN", "").strip() or None)
+user = get_user_from_token(st.session_state.get("token"))
+
+if not user:
+    st.subheader("Login")
+    tab_login, tab_signup = st.tabs(["Login", "Sign up"])
+
+    with tab_login:
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_password")
+        if st.button("Login", type="primary"):
+            try:
+                token = login_user(email=email, password=password)
+                st.session_state["token"] = token
+                st.success("Logged in.")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
+    with tab_signup:
+        email = st.text_input("Email", key="signup_email")
+        password = st.text_input("Password (min 8 chars)", type="password", key="signup_password")
+        if st.button("Create account", type="primary"):
+            try:
+                register_user(email=email, password=password)
+                token = login_user(email=email, password=password)
+                st.session_state["token"] = token
+                st.success("Account created.")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
+    st.stop()
+
+with st.sidebar:
+    st.header("Account")
+    st.caption(f"email={user.get('email')}")
+    if st.button("Logout"):
+        st.session_state["token"] = None
+        st.rerun()
 
 col_up, col_chat = st.columns([1, 1])
 
@@ -101,6 +145,11 @@ with col_chat:
                     st.write("Hi - ask me a question about the documents in the vector DB.")
                     raise SystemExit
 
+                allowed, remaining = check_and_consume(user_id=user["userId"], limit_per_minute=10)
+                if not allowed:
+                    st.warning("Rate limit exceeded: 10 messages/minute. Try again shortly.")
+                    raise SystemExit
+
                 collection = _collection()
                 contexts, best_dist = retrieve(collection, prompt, top_k=6)
 
@@ -118,14 +167,39 @@ with col_chat:
                     st.write(data.get("answer", ""))
                     if data.get("sources"):
                         st.caption("Sources: " + ", ".join(data["sources"]))
+                    st.caption(f"rate_limit_remaining={remaining}")
                     with st.expander("Retrieved chunks"):
                         for c in contexts:
                             meta = c.get("meta") or {}
                             st.write(
                                 f"- id={c.get('id')} distance={c.get('distance'):.4f} source={meta.get('sourceTitle')} chunkIndex={meta.get('chunkIndex')}"
                             )
+
+                    # Persist history (last 10 shown via sidebar button).
+                    db = get_db()
+                    db.chat_history.insert_one(
+                        {
+                            "userId": user["userId"],
+                            "question": prompt[:500],
+                            "answer": (data.get("answer") or "")[:4000],
+                            "sources": data.get("sources") or [],
+                            "confidence": data.get("confidence") or "low",
+                            "createdAt": now_utc(),
+                        }
+                    )
             except SystemExit:
                 pass
             except Exception as e:
                 st.error(str(e))
 
+with st.sidebar:
+    if st.button("Show last 10 Q&A"):
+        db = get_db()
+        items = list(db.chat_history.find({"userId": user["userId"]}).sort("createdAt", -1).limit(10))
+        if not items:
+            st.info("No history yet.")
+        else:
+            for it in items:
+                st.write(f"Q: {it.get('question')}")
+                st.write(f"A: {it.get('answer')}")
+                st.caption(f"sources={it.get('sources')}, confidence={it.get('confidence')}")
